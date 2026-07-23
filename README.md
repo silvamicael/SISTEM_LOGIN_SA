@@ -3,6 +3,10 @@
 Projeto desenvolvido para a **Situação de Aprendizagem (SA)** do curso **Técnico em Desenvolvimento de Sistemas**, com foco na criação de uma plataforma web capaz de personalizar o processo de aprendizagem por meio de **Inteligência Artificial**.
 
 ---
+LINK DO DEPLOY: https://sistem-login-sa.vercel.app/dashboard
+---
+
+---
 
 ## 📖 Sobre o projeto
 
