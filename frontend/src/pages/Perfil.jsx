@@ -1,34 +1,45 @@
 import { useEffect, useState } from "react";
 import { apiFetch } from "../services/api";
+import { useAsyncAction } from "../hooks/useAsyncAction";
 
-function Perfil() {
+function Perfil({ onContaDesativada }) {
     const [form, setForm] = useState({
         nome: "",
         email: "",
         novaSenha: "",
         confirmarNovaSenha: ""
     });
-    const [mensagem, setMensagem] = useState("");
-    const [erro, setErro] = useState("");
-    const [carregando, setCarregando] = useState(false);
+    const { mensagem, erro, carregando, executar, setMensagem, setErro } = useAsyncAction();
 
     useEffect(() => {
-        carregarPerfil();
-    }, []);
+        let cancelado = false;
 
-    async function carregarPerfil() {
-        try {
-            const dados = await apiFetch("/usuario/perfil");
+        async function carregarPerfil() {
+            try {
+                const dados = await apiFetch("/usuario/perfil");
 
-            setForm((prev) => ({
-                ...prev,
-                nome: dados.nome || "",
-                email: dados.email || ""
-            }));
-        } catch (error) {
-            setErro(error.message);
+                if (cancelado) {
+                    return;
+                }
+
+                setForm((prev) => ({
+                    ...prev,
+                    nome: dados.nome || "",
+                    email: dados.email || ""
+                }));
+            } catch (error) {
+                if (!cancelado) {
+                    setErro(error.message);
+                }
+            }
         }
-    }
+
+        carregarPerfil();
+
+        return () => {
+            cancelado = true;
+        };
+    }, [setErro]);
 
     function handleChange(event) {
         const { name, value } = event.target;
@@ -41,11 +52,8 @@ function Perfil() {
 
     async function atualizarPerfil(event) {
         event.preventDefault();
-        setMensagem("");
-        setErro("");
-        setCarregando(true);
 
-        try {
+        await executar(async () => {
             const payload = {
                 nome: form.nome,
                 email: form.email
@@ -67,11 +75,7 @@ function Perfil() {
                 novaSenha: "",
                 confirmarNovaSenha: ""
             }));
-        } catch (error) {
-            setErro(error.message);
-        } finally {
-            setCarregando(false);
-        }
+        });
     }
 
     async function desativarConta() {
@@ -88,8 +92,7 @@ function Perfil() {
                 method: "DELETE"
             });
 
-            localStorage.removeItem("token");
-            window.location.reload();
+            await onContaDesativada();
         } catch (error) {
             setErro(error.message);
         }

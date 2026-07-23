@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { apiFetch } from "../services/api";
+import { useAsyncAction } from "../hooks/useAsyncAction";
 
 function Auth({ onAuthSuccess }) {
     const [isLogin, setIsLogin] = useState(true);
@@ -9,9 +10,7 @@ function Auth({ onAuthSuccess }) {
         senha: "",
         confirmarSenha: ""
     });
-    const [mensagem, setMensagem] = useState("");
-    const [erro, setErro] = useState("");
-    const [carregando, setCarregando] = useState(false);
+    const { mensagem, erro, carregando, executar, setMensagem } = useAsyncAction();
 
     function handleChange(event) {
         const { name, value } = event.target;
@@ -24,17 +23,14 @@ function Auth({ onAuthSuccess }) {
 
     async function handleSubmit(event) {
         event.preventDefault();
-        setMensagem("");
-        setErro("");
-        setCarregando(true);
 
-        try {
+        await executar(async () => {
             if (!isLogin && form.senha !== form.confirmarSenha) {
                 throw new Error("As senhas não coincidem.");
             }
 
             if (isLogin) {
-                const data = await apiFetch("/auth/login", {
+                await apiFetch("/auth/login", {
                     method: "POST",
                     body: JSON.stringify({
                         email: form.email,
@@ -42,7 +38,6 @@ function Auth({ onAuthSuccess }) {
                     })
                 });
 
-                localStorage.setItem("token", data.token);
                 onAuthSuccess();
                 return;
             }
@@ -65,11 +60,7 @@ function Auth({ onAuthSuccess }) {
                 senha: "",
                 confirmarSenha: ""
             });
-        } catch (error) {
-            setErro(error.message);
-        } finally {
-            setCarregando(false);
-        }
+        });
     }
 
     return (

@@ -1,5 +1,7 @@
 import { useEffect, useState } from "react";
 import { apiFetch } from "../services/api";
+import { useAsyncAction } from "../hooks/useAsyncAction";
+import QuestionForm from "../components/QuestionForm";
 
 function Avaliacao() {
     const [trilhas, setTrilhas] = useState([]);
@@ -7,29 +9,34 @@ function Avaliacao() {
     const [avaliacaoAtual, setAvaliacaoAtual] = useState(null);
     const [planoId, setPlanoId] = useState(null);
     const [respostas, setRespostas] = useState({});
-    const [mensagem, setMensagem] = useState("");
-    const [erro, setErro] = useState("");
-    const [carregando, setCarregando] = useState(false);
+    const { mensagem, erro, carregando, executar, setMensagem, setErro } = useAsyncAction();
 
     useEffect(() => {
-        carregarTrilhas();
-    }, []);
+        let cancelado = false;
 
-    async function carregarTrilhas() {
-        try {
-            const data = await apiFetch("/trilhas");
-            setTrilhas(Array.isArray(data) ? data : []);
-        } catch (error) {
-            setErro(error.message);
+        async function carregarTrilhas() {
+            try {
+                const data = await apiFetch("/trilhas");
+
+                if (!cancelado) {
+                    setTrilhas(Array.isArray(data) ? data : []);
+                }
+            } catch (error) {
+                if (!cancelado) {
+                    setErro(error.message);
+                }
+            }
         }
-    }
+
+        carregarTrilhas();
+
+        return () => {
+            cancelado = true;
+        };
+    }, [setErro]);
 
     async function gerarDiagnostico() {
-        setMensagem("");
-        setErro("");
-        setCarregando(true);
-
-        try {
+        await executar(async () => {
             if (!trilhaSelecionada) {
                 throw new Error("Escolha uma trilha primeiro.");
             }
@@ -47,11 +54,7 @@ function Avaliacao() {
             setAvaliacaoAtual(data.perguntas);
             setRespostas({});
             setMensagem("Avaliação diagnóstica gerada com sucesso.");
-        } catch (error) {
-            setErro(error.message);
-        } finally {
-            setCarregando(false);
-        }
+        });
     }
 
     function marcarResposta(perguntaId, alternativa) {
@@ -62,11 +65,7 @@ function Avaliacao() {
     }
 
     async function enviarDiagnostico() {
-        setMensagem("");
-        setErro("");
-        setCarregando(true);
-
-        try {
+        await executar(async () => {
             const payload = Object.entries(respostas).map(([id, respostaEscolhida]) => ({
                 id: Number(id),
                 respostaEscolhida
@@ -84,11 +83,7 @@ function Avaliacao() {
             );
             setAvaliacaoAtual(null);
             setRespostas({});
-        } catch (error) {
-            setErro(error.message);
-        } finally {
-            setCarregando(false);
-        }
+        });
     }
 
     return (
@@ -131,30 +126,12 @@ function Avaliacao() {
                 <section className="card">
                     <h3>Responder avaliação</h3>
 
-                    <div className="questions-list">
-                        {avaliacaoAtual.map((pergunta) => (
-                            <div className="question-card" key={pergunta.id}>
-                                <p className="question-title">{pergunta.enunciado}</p>
-
-                                <div className="alternativas">
-                                    {pergunta.alternativas.map((alternativa) => (
-                                        <label key={alternativa} className="alternativa-item">
-                                            <input
-                                                type="radio"
-                                                name={`pergunta-${pergunta.id}`}
-                                                value={alternativa}
-                                                checked={respostas[pergunta.id] === alternativa}
-                                                onChange={() =>
-                                                    marcarResposta(pergunta.id, alternativa)
-                                                }
-                                            />
-                                            <span>{alternativa}</span>
-                                        </label>
-                                    ))}
-                                </div>
-                            </div>
-                        ))}
-                    </div>
+                    <QuestionForm
+                        perguntas={avaliacaoAtual}
+                        respostas={respostas}
+                        onResponder={marcarResposta}
+                        namePrefix="pergunta"
+                    />
 
                     <button onClick={enviarDiagnostico} disabled={carregando}>
                         {carregando ? "Enviando..." : "Enviar respostas"}

@@ -1,11 +1,14 @@
 import "dotenv/config";
+import cookieParser from "cookie-parser";
 import cors from "cors";
 import express from "express";
+import morgan from "morgan";
 
 import corsConfig from "./config/cors.js";
 import sequelize from "./config/database.js";
 import { helmetConfig } from "./config/helmet.js";
 import { limitadorGlobal } from "./config/rateLimit.js";
+import { errorHandler } from "./middleware/error.middleware.js";
 
 import "./models/index.js";
 
@@ -16,11 +19,14 @@ import routerTrilha from "./router/trilha.routes.js";
 
 const app = express();
 const PORT = process.env.PORT || 3000;
+const isProducao = process.env.NODE_ENV === "production";
 
 app.use(cors(corsConfig));
 app.use(helmetConfig);
 app.use(limitadorGlobal);
 app.use(express.json());
+app.use(cookieParser());
+app.use(morgan(isProducao ? "combined" : "dev"));
 
 app.get("/", (req, res) => {
     return res.status(200).json({
@@ -32,6 +38,8 @@ app.use("/auth", routerAuth);
 app.use("/usuario", routerUser);
 app.use("/plans", routerPlano);
 app.use("/trilhas", routerTrilha);
+
+app.use(errorHandler);
 
 async function iniciarServidor() {
     try {

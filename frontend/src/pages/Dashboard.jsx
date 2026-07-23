@@ -8,24 +8,36 @@ function Dashboard() {
     const [erro, setErro] = useState("");
 
     useEffect(() => {
-        carregarDados();
-    }, []);
+        let cancelado = false;
 
-    async function carregarDados() {
-        try {
-            const [perfil, listaPlanos, trilhaData] = await Promise.all([
-                apiFetch("/usuario/perfil"),
-                apiFetch("/plans"),
-                apiFetch("/trilhas/minha").catch(() => ({ trilha: null }))
-            ]);
+        async function carregarDados() {
+            try {
+                const [perfil, listaPlanos, trilhaData] = await Promise.all([
+                    apiFetch("/usuario/perfil"),
+                    apiFetch("/plans"),
+                    apiFetch("/trilhas/minha").catch(() => ({ trilha: null }))
+                ]);
 
-            setUsuario(perfil);
-            setPlanos(Array.isArray(listaPlanos) ? listaPlanos : []);
-            setMinhaTrilha(trilhaData?.trilha || null);
-        } catch (error) {
-            setErro(error.message);
+                if (cancelado) {
+                    return;
+                }
+
+                setUsuario(perfil);
+                setPlanos(Array.isArray(listaPlanos) ? listaPlanos : []);
+                setMinhaTrilha(trilhaData?.trilha || null);
+            } catch (error) {
+                if (!cancelado) {
+                    setErro(error.message);
+                }
+            }
         }
-    }
+
+        carregarDados();
+
+        return () => {
+            cancelado = true;
+        };
+    }, []);
 
     const primeiroNome = usuario?.nome?.split(" ")[0] || "Aluno";
 

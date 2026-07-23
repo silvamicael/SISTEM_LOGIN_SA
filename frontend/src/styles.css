@@ -431,6 +431,15 @@ select:focus {
     margin-top: 20px;
 }
 
+.app-loading {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--text-muted, #8a94a6);
+    font-size: 14px;
+}
+
 .auth-container {
     min-height: 100vh;
     display: flex;

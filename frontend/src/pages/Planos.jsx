@@ -1,5 +1,7 @@
 import { useEffect, useState } from "react";
 import { apiFetch } from "../services/api";
+import { useAsyncAction } from "../hooks/useAsyncAction";
+import QuestionForm from "../components/QuestionForm";
 
 function Planos() {
     const [planos, setPlanos] = useState([]);
@@ -7,22 +9,31 @@ function Planos() {
     const [avaliacaoPendente, setAvaliacaoPendente] = useState(null);
     const [historico, setHistorico] = useState([]);
     const [respostas, setRespostas] = useState({});
-    const [mensagem, setMensagem] = useState("");
-    const [erro, setErro] = useState("");
-    const [carregando, setCarregando] = useState(false);
+    const { mensagem, erro, carregando, executar, setMensagem, setErro } = useAsyncAction();
 
     useEffect(() => {
-        carregarPlanos();
-    }, []);
+        let cancelado = false;
 
-    async function carregarPlanos() {
-        try {
-            const data = await apiFetch("/plans");
-            setPlanos(Array.isArray(data) ? data : []);
-        } catch (error) {
-            setErro(error.message);
+        async function carregarPlanos() {
+            try {
+                const data = await apiFetch("/plans");
+
+                if (!cancelado) {
+                    setPlanos(Array.isArray(data) ? data : []);
+                }
+            } catch (error) {
+                if (!cancelado) {
+                    setErro(error.message);
+                }
+            }
         }
-    }
+
+        carregarPlanos();
+
+        return () => {
+            cancelado = true;
+        };
+    }, [setErro]);
 
     async function abrirPlano(id) {
         setMensagem("");
@@ -49,11 +60,7 @@ function Planos() {
     }
 
     async function enviarProgresso() {
-        setMensagem("");
-        setErro("");
-        setCarregando(true);
-
-        try {
+        await executar(async () => {
             const payload = Object.entries(respostas).map(([id, respostaEscolhida]) => ({
                 id: Number(id),
                 respostaEscolhida
@@ -68,11 +75,7 @@ function Planos() {
 
             setMensagem(`Avaliação enviada. Nota: ${data.nota}`);
             await abrirPlano(planoSelecionado.id);
-        } catch (error) {
-            setErro(error.message);
-        } finally {
-            setCarregando(false);
-        }
+        });
     }
 
     return (
@@ -146,30 +149,12 @@ function Planos() {
                     <h3>Avaliação de progresso</h3>
                     <p><strong>Dificuldade:</strong> {avaliacaoPendente.dificuldade}</p>
 
-                    <div className="questions-list">
-                        {avaliacaoPendente.perguntas.map((pergunta) => (
-                            <div className="question-card" key={pergunta.id}>
-                                <p className="question-title">{pergunta.enunciado}</p>
-
-                                <div className="alternativas">
-                                    {pergunta.alternativas.map((alternativa) => (
-                                        <label key={alternativa} className="alternativa-item">
-                                            <input
-                                                type="radio"
-                                                name={`progress-${pergunta.id}`}
-                                                value={alternativa}
-                                                checked={respostas[pergunta.id] === alternativa}
-                                                onChange={() =>
-                                                    marcarResposta(pergunta.id, alternativa)
-                                                }
-                                            />
-                                            <span>{alternativa}</span>
-                                        </label>
-                                    ))}
-                                </div>
-                            </div>
-                        ))}
-                    </div>
+                    <QuestionForm
+                        perguntas={avaliacaoPendente.perguntas}
+                        respostas={respostas}
+                        onResponder={marcarResposta}
+                        namePrefix="progress"
+                    />
 
                     <button onClick={enviarProgresso} disabled={carregando}>
                         {carregando ? "Enviando..." : "Enviar avaliação"}

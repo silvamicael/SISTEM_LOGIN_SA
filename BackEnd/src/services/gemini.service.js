@@ -1,18 +1,17 @@
-import { GoogleGenerativeAI } from "@google/generative-ai";
+import "dotenv/config";
+import { GoogleGenAI } from "@google/genai";
 
-const GEMINI_API_KEY = process.env.GEMINI_API_KEY || "";
+const apiKey = process.env.GEMINI_API_KEY;
 
-function getModel() {
-    if (!GEMINI_API_KEY) {
-        throw new Error("GEMINI_API_KEY não configurada.");
-    }
-
-    const genAI = new GoogleGenerativeAI(GEMINI_API_KEY);
-
-    return genAI.getGenerativeModel({
-        model: "gemini-1.5-flash"
-    });
+if (!apiKey) {
+    throw new Error("GEMINI_API_KEY não configurada.");
 }
+
+const ai = new GoogleGenAI({
+    apiKey,
+});
+
+const MODEL = process.env.GEMINI_MODEL || "gemini-flash-latest";
 
 function extrairJson(texto) {
     const textoLimpo = texto
@@ -29,193 +28,239 @@ function criarErroGemini(mensagem, status = 500) {
     return erro;
 }
 
-async function esperar(ms) {
-    return new Promise((resolve) => setTimeout(resolve, ms));
+function esperar(ms) {
+    return new Promise(resolve => setTimeout(resolve, ms));
 }
 
-async function gerarConteudoJSON(prompt) {
+async function gerarTexto(prompt) {
     const tentativas = 3;
-    let ultimoErro = null;
+    let ultimoErro;
 
     for (let tentativa = 1; tentativa <= tentativas; tentativa++) {
         try {
-            const model = getModel();
-
             console.log(`🤖 Consultando Gemini... tentativa ${tentativa}/${tentativas}`);
 
-            const result = await model.generateContent(prompt);
-            const response = await result.response;
-            const text = response.text();
+            const response = await ai.models.generateContent({
+                model: MODEL,
+                contents: prompt,
+            });
 
-            if (!text || !text.trim()) {
-                throw criarErroGemini("A Gemini retornou uma resposta vazia.", 502);
+            const texto = response.text?.trim();
+
+            if (!texto) {
+                throw new Error("Resposta vazia da Gemini.");
             }
 
-            const json = extrairJson(text);
+            console.log("✅ Resposta recebida.");
 
-            console.log("✅ Resposta recebida da Gemini.");
-            return json;
+            return texto;
+
         } catch (error) {
             ultimoErro = error;
+
             console.error(`❌ Erro na tentativa ${tentativa}:`, error.message);
 
-            const ultimaTentativa = tentativa === tentativas;
-
-            if (!ultimaTentativa) {
-                const tempoEspera = tentativa * 2000;
-                console.log(`⏳ Aguardando ${tempoEspera}ms para tentar novamente...`);
-                await esperar(tempoEspera);
+            if (tentativa < tentativas) {
+                await esperar(tentativa * 2000);
             }
         }
     }
 
-    const status = ultimoErro?.status || 503;
-
     throw criarErroGemini(
-        "A Gemini está indisponível no momento. Tente novamente em instantes.",
-        status
+        ultimoErro?.message || "Erro ao consultar Gemini.",
+        ultimoErro?.status || 500
     );
 }
 
-export async function gerarOpcoesTrilha(areaInteresse, nivelAtual, nivelObjetivo) {
-    const prompt = `
-Você é um especialista em educação adaptativa.
+async function gerarJSON(prompt) {
+    const texto = await gerarTexto(prompt);
 
-Crie 3 opções de trilhas de aprendizagem em português com base nestes dados:
-
-Área de interesse: ${areaInteresse}
-Nível atual do aluno: ${nivelAtual}
-Nível desejado: ${nivelObjetivo}
-
-Retorne SOMENTE um JSON válido no formato de array, sem markdown, sem explicações.
-
-Cada item do array deve conter:
-- titulo
-- descricao
-- topicos (array)
-- habilidades (array)
-- areaInteresse
-- nivelAtual
-- nivelObjetivo
-`;
-
-    return gerarConteudoJSON(prompt);
-}
-
-export async function gerarAvaliacaoDiagnostica(trilha) {
-    const prompt = `
-Você é um especialista em educação e deve gerar uma avaliação diagnóstica.
-
-Trilha: ${trilha}
-
-Gere exatamente 5 questões de múltipla escolha, em português, com nível introdutório.
-
-Cada questão deve conter:
-- id
-- enunciado
-- topico
-- alternativas (array com 4 alternativas)
-- respostaCorreta
-
-Responda SOMENTE em JSON válido, como array.
-`;
-
-    return gerarConteudoJSON(prompt);
-}
-
-export async function gerarAvaliacaoProgresso(trilha, nivel = "iniciante", notasAnteriores = []) {
-    const prompt = `
-Você é um especialista em educação adaptativa.
-
-Trilha: ${trilha}
-Nível atual do aluno: ${nivel}
-Notas anteriores: ${JSON.stringify(notasAnteriores)}
-
-Gere uma avaliação de progresso com 3 questões de múltipla escolha em português.
-
-Retorne em JSON com:
-- dificuldade
-- perguntas (array)
-
-Cada pergunta deve conter:
-- id
-- enunciado
-- topico
-- alternativas
-- respostaCorreta
-`;
-
-    return gerarConteudoJSON(prompt);
-}
-
-export async function gerarPlanoEnsino(trilha, nivel, desempenhoPorTopico = {}) {
-    const prompt = `
-Você é um orientador pedagógico.
-
-Trilha: ${trilha}
-Nível do aluno: ${nivel}
-Desempenho por tópico: ${JSON.stringify(desempenhoPorTopico)}
-
-Gere um plano de ensino personalizado em português.
-
-Retorne em JSON com:
-- conteudosPrioritarios (array)
-- metas (array)
-- observacoes (string)
-`;
-
-    return gerarConteudoJSON(prompt);
-}
-
-export async function gerarFeedback(nota, topicosErrados = []) {
     try {
-        const model = getModel();
-
-        console.log("🤖 Consultando Gemini para feedback...");
-
-        const prompt = `
-Você é um professor que dá feedback claro e motivador.
-
-Nota do aluno: ${nota}/10
-Tópicos com dificuldade: ${topicosErrados.join(", ") || "nenhum informado"}
-
-Gere um feedback curto, em português, motivador e objetivo.
-`;
-
-        const result = await model.generateContent(prompt);
-        const response = await result.response;
-        const text = response.text().trim();
-
-        if (!text) {
-            throw criarErroGemini("A Gemini retornou feedback vazio.", 502);
-        }
-
-        console.log("✅ Feedback recebido da Gemini.");
-        return text;
+        return extrairJson(texto);
     } catch (error) {
-        console.error("❌ Erro ao gerar feedback com Gemini:", error);
+        console.error(texto);
         throw criarErroGemini(
-            "Não foi possível gerar o feedback com a Gemini agora.",
-            error?.status || 503
+            "A Gemini retornou um JSON inválido.",
+            502
         );
     }
 }
 
-export async function ajustarPlano(plano, resultado) {
+export async function gerarOpcoesTrilha(areaInteresse, nivelAtual, nivelObjetivo) {
+
+    const prompt = `
+Você é um especialista em educação adaptativa.
+
+Crie exatamente 3 trilhas.
+
+Área de interesse: ${areaInteresse}
+Nível atual: ${nivelAtual}
+Nível desejado: ${nivelObjetivo}
+
+Retorne SOMENTE um JSON válido.
+
+[
+ {
+   "titulo":"",
+   "descricao":"",
+   "topicos":[""],
+   "habilidades":[""],
+   "areaInteresse":"",
+   "nivelAtual":"",
+   "nivelObjetivo":""
+ }
+]
+`;
+
+    return gerarJSON(prompt);
+}
+
+export async function gerarAvaliacaoDiagnostica(trilha) {
+
+    const prompt = `
+Você é um professor.
+
+Crie exatamente 5 questões.
+
+Trilha:
+
+${trilha}
+
+Retorne SOMENTE JSON.
+
+[
+ {
+   "id":1,
+   "enunciado":"",
+   "topico":"",
+   "alternativas":["","","",""],
+   "respostaCorreta":0
+ }
+]
+`;
+
+    return gerarJSON(prompt);
+}
+
+export async function gerarAvaliacaoProgresso(
+    trilha,
+    nivel = "iniciante",
+    notasAnteriores = []
+) {
+
+    const prompt = `
+Você é um professor.
+
+Trilha:
+
+${trilha}
+
+Nível:
+
+${nivel}
+
+Notas:
+
+${JSON.stringify(notasAnteriores)}
+
+Retorne SOMENTE JSON.
+
+{
+    "dificuldade":"",
+    "perguntas":[
+        {
+            "id":1,
+            "enunciado":"",
+            "topico":"",
+            "alternativas":["","","",""],
+            "respostaCorreta":0
+        }
+    ]
+}
+`;
+
+    return gerarJSON(prompt);
+}
+
+export async function gerarPlanoEnsino(
+    trilha,
+    nivel,
+    desempenhoPorTopico = {}
+) {
+
+    const prompt = `
+Você é um orientador pedagógico.
+
+Trilha:
+
+${trilha}
+
+Nível:
+
+${nivel}
+
+Desempenho:
+
+${JSON.stringify(desempenhoPorTopico)}
+
+Retorne SOMENTE JSON.
+
+{
+    "conteudosPrioritarios":[],
+    "metas":[],
+    "observacoes":""
+}
+`;
+
+    return gerarJSON(prompt);
+}
+
+export async function gerarFeedback(
+    nota,
+    topicosErrados = []
+) {
+
+    const prompt = `
+Você é um professor.
+
+Nota:
+
+${nota}/10
+
+Tópicos com dificuldade:
+
+${topicosErrados.join(", ") || "Nenhum"}
+
+Escreva um feedback curto, objetivo e motivador.
+`;
+
+    return gerarTexto(prompt);
+}
+
+export async function ajustarPlano(
+    plano,
+    resultado
+) {
+
     const prompt = `
 Você é um orientador pedagógico.
 
 Plano atual:
+
 ${JSON.stringify(plano)}
 
-Resultado da avaliação:
+Resultado:
+
 ${JSON.stringify(resultado)}
 
-Retorne um JSON com:
-- nivel
-- conteudosPrioritarios (array)
-- metas (array)
+Retorne SOMENTE JSON.
+
+{
+    "nivel":"",
+    "conteudosPrioritarios":[],
+    "metas":[]
+}
 `;
 
-    return gerarConteudoJSON(prompt);
+    return gerarJSON(prompt);
 }

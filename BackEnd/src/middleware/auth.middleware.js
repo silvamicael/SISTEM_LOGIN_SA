@@ -1,20 +1,31 @@
 import jwt from "jsonwebtoken";
+import { NOME_COOKIE_TOKEN } from "../utils/token.js";
+
+function extrairToken(req) {
+    const tokenDoCookie = req.cookies?.[NOME_COOKIE_TOKEN];
+
+    if (tokenDoCookie) {
+        return tokenDoCookie;
+    }
+
+    const authHeader = req.headers.authorization;
+
+    if (!authHeader) {
+        return null;
+    }
+
+    const [tipo, token] = authHeader.split(" ");
+
+    return tipo === "Bearer" ? token : null;
+}
 
 export function authJWT(req, res, next) {
     try {
-        const authHeader = req.headers.authorization;
+        const token = extrairToken(req);
 
-        if (!authHeader) {
+        if (!token) {
             return res.status(401).json({
                 erro: "Token não informado."
-            });
-        }
-
-        const [tipo, token] = authHeader.split(" ");
-
-        if (tipo !== "Bearer" || !token) {
-            return res.status(401).json({
-                erro: "Token inválido."
             });
         }
 

@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { apiFetch } from "../services/api";
+import { useAsyncAction } from "../hooks/useAsyncAction";
 
 function Trilhas() {
     const [form, setForm] = useState({
@@ -10,22 +11,29 @@ function Trilhas() {
 
     const [opcoes, setOpcoes] = useState([]);
     const [minhaTrilha, setMinhaTrilha] = useState(null);
-    const [mensagem, setMensagem] = useState("");
-    const [erro, setErro] = useState("");
-    const [carregando, setCarregando] = useState(false);
+    const { mensagem, erro, carregando, executar, setMensagem, setErro } = useAsyncAction();
 
     useEffect(() => {
-        carregarMinhaTrilha();
-    }, []);
+        let cancelado = false;
 
-    async function carregarMinhaTrilha() {
-        try {
-            const data = await apiFetch("/trilhas/minha");
-            setMinhaTrilha(data.trilha || null);
-        } catch (error) {
-            console.error(error.message);
+        async function carregarMinhaTrilha() {
+            try {
+                const data = await apiFetch("/trilhas/minha");
+
+                if (!cancelado) {
+                    setMinhaTrilha(data.trilha || null);
+                }
+            } catch (error) {
+                console.error(error.message);
+            }
         }
-    }
+
+        carregarMinhaTrilha();
+
+        return () => {
+            cancelado = true;
+        };
+    }, []);
 
     function handleChange(event) {
         const { name, value } = event.target;
@@ -38,11 +46,8 @@ function Trilhas() {
 
     async function gerarOpcoes(event) {
         event.preventDefault();
-        setMensagem("");
-        setErro("");
-        setCarregando(true);
 
-        try {
+        await executar(async () => {
             const data = await apiFetch("/trilhas/gerar-opcoes", {
                 method: "POST",
                 body: JSON.stringify(form)
@@ -50,11 +55,7 @@ function Trilhas() {
 
             setOpcoes(data.opcoes || []);
             setMensagem("A Gemini gerou novas trilhas para você.");
-        } catch (error) {
-            setErro(error.message);
-        } finally {
-            setCarregando(false);
-        }
+        });
     }
 
     async function escolherTrilha(trilha) {
