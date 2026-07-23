@@ -1,36 +1,39 @@
-function Sidebar({ pagina, setPagina }) {
+import { NavLink } from "react-router-dom";
+import { LuHouse, LuNetwork, LuCalendar, LuClipboardCheck, LuUserRound, LuBrain } from "react-icons/lu";
+
+function Sidebar() {
     const itens = [
-        { id: "dashboard", label: "Início" },
-        { id: "trilhas", label: "Trilhas" },
-        { id: "planos", label: "Plano" },
-        { id: "avaliacao", label: "Avaliação" },
-        { id: "perfil", label: "Perfil" }
+        { to: "/dashboard", label: "Início", Icon: LuHouse },
+        { to: "/trilhas", label: "Trilhas", Icon: LuNetwork },
+        { to: "/planos", label: "Plano", Icon: LuCalendar },
+        { to: "/avaliacao", label: "Avaliação", Icon: LuClipboardCheck },
+        { to: "/perfil", label: "Perfil", Icon: LuUserRound }
     ];
 
     return (
         <aside className="sidebar">
-            <div className="sidebar-brand">
-                <div className="brand-badge">E</div>
-                <div>
-                    <h2>EduSphere IA</h2>
-                    <p>Aprendizagem adaptativa</p>
-                </div>
-            </div>
-
             <nav className="sidebar-nav">
-                {itens.map((item) => (
-                    <button
-                        key={item.id}
-                        className={pagina === item.id ? "active" : ""}
-                        onClick={() => setPagina(item.id)}
+                {itens.map(({ to, label, Icon }) => (
+                    <NavLink
+                        key={to}
+                        to={to}
+                        className={({ isActive }) => (isActive ? "active" : "")}
                     >
-                        {item.label}
-                    </button>
+                        <Icon size={18} />
+                        <span>{label}</span>
+                    </NavLink>
                 ))}
             </nav>
 
-            <div className="sidebar-footer">
-                <p>Sistema educacional guiado por IA</p>
+            <div className="sidebar-bottom">
+                <div className="sidebar-promo">
+                    <LuBrain size={22} />
+                    <p>A IA que entende seu ritmo e te leva mais longe.</p>
+                </div>
+
+                <div className="sidebar-footer">
+                    <p>Sistema educacional guiado por IA</p>
+                </div>
             </div>
         </aside>
     );

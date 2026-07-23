@@ -6,24 +6,25 @@
 }
 
 :root {
-    --bg: #08111f;
-    --bg-soft: #0d1729;
-    --card: rgba(17, 25, 40, 0.78);
-    --card-strong: #101a2d;
-    --border: rgba(255, 255, 255, 0.08);
-    --text: #e8eefc;
-    --muted: #98a6c0;
-    --primary: #6c63ff;
-    --primary-soft: #9b8cff;
-    --success: #1ed39b;
-    --danger: #ff5c7a;
-    --shadow: 0 20px 60px rgba(0, 0, 0, 0.35);
+    --bg: #f5f7fb;
+    --bg-soft: #eef1f8;
+    --card: #ffffff;
+    --card-strong: #ffffff;
+    --border: rgba(15, 23, 42, 0.08);
+    --text: #0f1a2e;
+    --muted: #6b7690;
+    --primary: #2f6feb;
+    --primary-soft: #5b93f5;
+    --primary-tint: rgba(47, 111, 235, 0.1);
+    --success: #16a34a;
+    --danger: #e0334f;
+    --shadow: 0 8px 24px rgba(15, 23, 42, 0.06);
 }
 
 body {
     background:
-        radial-gradient(circle at top left, rgba(108, 99, 255, 0.18), transparent 30%),
-        radial-gradient(circle at bottom right, rgba(29, 211, 155, 0.08), transparent 25%),
+        radial-gradient(circle at top left, rgba(47, 111, 235, 0.06), transparent 30%),
+        radial-gradient(circle at bottom right, rgba(47, 111, 235, 0.03), transparent 25%),
         var(--bg);
     color: var(--text);
 }
@@ -62,43 +63,12 @@ button.danger {
 
 .sidebar {
     width: 260px;
-    background: rgba(8, 14, 26, 0.9);
+    background: #ffffff;
     border-right: 1px solid var(--border);
     padding: 28px 18px;
     display: flex;
     flex-direction: column;
     justify-content: space-between;
-    backdrop-filter: blur(12px);
-}
-
-.sidebar-brand {
-    display: flex;
-    align-items: center;
-    gap: 14px;
-    margin-bottom: 28px;
-}
-
-.brand-badge {
-    width: 42px;
-    height: 42px;
-    border-radius: 14px;
-    background: linear-gradient(135deg, var(--primary), #4cc9f0);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-weight: 800;
-    color: white;
-    box-shadow: 0 10px 30px rgba(108, 99, 255, 0.35);
-}
-
-.sidebar-brand h2 {
-    font-size: 18px;
-    margin-bottom: 2px;
-}
-
-.sidebar-brand p {
-    color: var(--muted);
-    font-size: 13px;
 }
 
 .sidebar-nav {
@@ -107,20 +77,48 @@ button.danger {
     gap: 10px;
 }
 
-.sidebar-nav button {
+.sidebar-nav a {
     width: 100%;
     text-align: left;
     background: transparent;
     color: var(--muted);
     border: 1px solid transparent;
     box-shadow: none;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    border-radius: 12px;
+    padding: 12px 16px;
+    font-weight: 600;
+    text-decoration: none;
+    cursor: pointer;
+    transition: 0.25s;
 }
 
-.sidebar-nav button:hover,
-.sidebar-nav button.active {
-    background: rgba(255, 255, 255, 0.06);
-    color: var(--text);
-    border-color: var(--border);
+.sidebar-nav a:hover,
+.sidebar-nav a.active {
+    background: var(--primary-tint);
+    color: var(--primary);
+    border-color: transparent;
+}
+
+.sidebar-bottom {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.sidebar-promo {
+    background: var(--primary-tint);
+    color: var(--primary);
+    border-radius: 16px;
+    padding: 14px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    align-items: flex-start;
+    font-size: 13px;
+    line-height: 1.5;
 }
 
 .sidebar-footer {
@@ -138,13 +136,12 @@ button.danger {
 }
 
 .navbar {
-    background: rgba(10, 18, 31, 0.78);
+    background: #ffffff;
     border-bottom: 1px solid var(--border);
     padding: 18px 28px;
     display: flex;
     align-items: center;
     justify-content: space-between;
-    backdrop-filter: blur(14px);
 }
 
 .navbar h3 {
@@ -158,7 +155,14 @@ button.danger {
 }
 
 .logout-button {
-    background: linear-gradient(135deg, #ff5c7a, #ff7b54);
+    background: #ffffff;
+    color: var(--primary);
+    border: 1.5px solid var(--primary);
+    box-shadow: none;
+}
+
+.logout-button:hover {
+    background: var(--primary-tint);
 }
 
 .page {
@@ -180,12 +184,11 @@ button.danger {
 
 .hero-panel > div,
 .hero-side-card {
-    background: rgba(16, 26, 45, 0.78);
+    background: linear-gradient(135deg, #eaf1ff, #f5f9ff);
     border: 1px solid var(--border);
     border-radius: 22px;
     padding: 24px;
     box-shadow: var(--shadow);
-    backdrop-filter: blur(14px);
 }
 
 .hero-panel h1 {
@@ -210,8 +213,8 @@ button.danger {
     border-radius: 999px;
     font-size: 12px;
     font-weight: 700;
-    color: #fff;
-    background: linear-gradient(135deg, rgba(108, 99, 255, 0.8), rgba(76, 201, 240, 0.8));
+    color: var(--primary);
+    background: var(--primary-tint);
 }
 
 .page-header h1 {
@@ -241,18 +244,17 @@ button.danger {
     border: 1px solid var(--border);
     padding: 22px;
     box-shadow: var(--shadow);
-    backdrop-filter: blur(12px);
 }
 
 .dashboard-card,
 .glass-card,
 .dark-card,
 .card {
-    background: rgba(16, 26, 45, 0.78);
+    background: #ffffff;
 }
 
 .highlight-card {
-    background: linear-gradient(135deg, rgba(108, 99, 255, 0.22), rgba(76, 201, 240, 0.12));
+    background: linear-gradient(135deg, rgba(47, 111, 235, 0.12), rgba(47, 111, 235, 0.04));
 }
 
 .dashboard-card strong {
@@ -263,6 +265,46 @@ button.danger {
 
 .dashboard-card small {
     color: var(--muted);
+}
+
+.stat-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+    border-radius: 12px;
+    margin-bottom: 10px;
+}
+
+.stat-icon-blue {
+    background: rgba(47, 111, 235, 0.12);
+    color: var(--primary);
+}
+
+.stat-icon-green {
+    background: rgba(22, 163, 74, 0.12);
+    color: var(--success);
+}
+
+.stat-icon-purple {
+    background: rgba(124, 58, 237, 0.12);
+    color: #7c3aed;
+}
+
+.illustration-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 64px;
+    height: 64px;
+    border-radius: 50%;
+    margin-bottom: 6px;
+}
+
+.illustration-icon-blue {
+    background: var(--primary-tint);
+    color: var(--primary);
 }
 
 .status-active {
@@ -292,29 +334,29 @@ button.danger {
     display: block;
     font-size: 14px;
     margin-bottom: 8px;
-    color: #c6d1e6;
+    color: var(--muted);
 }
 
 input,
 select {
     width: 100%;
-    border: 1px solid rgba(255, 255, 255, 0.1);
+    border: 1px solid var(--border);
     border-radius: 14px;
     padding: 13px 14px;
-    background: rgba(255, 255, 255, 0.04);
+    background: #fbfcfe;
     color: var(--text);
     transition: 0.2s;
 }
 
 input::placeholder {
-    color: #74839f;
+    color: #9aa4bd;
 }
 
 input:focus,
 select:focus {
     outline: none;
-    border-color: rgba(108, 99, 255, 0.7);
-    box-shadow: 0 0 0 3px rgba(108, 99, 255, 0.16);
+    border-color: rgba(47, 111, 235, 0.6);
+    box-shadow: 0 0 0 3px rgba(47, 111, 235, 0.15);
 }
 
 .trail-badges {
@@ -325,8 +367,8 @@ select:focus {
 }
 
 .trail-badges span {
-    background: rgba(255, 255, 255, 0.06);
-    color: #d7e2ff;
+    background: var(--primary-tint);
+    color: var(--primary);
     border: 1px solid var(--border);
     border-radius: 999px;
     padding: 8px 12px;
@@ -385,7 +427,7 @@ select:focus {
     justify-content: space-between;
     gap: 14px;
     padding: 16px;
-    background: rgba(255, 255, 255, 0.035);
+    background: #f8fafc;
     border: 1px solid var(--border);
     border-radius: 16px;
 }
@@ -411,7 +453,7 @@ select:focus {
     width: 64px;
     height: 64px;
     border-radius: 18px;
-    background: linear-gradient(135deg, var(--primary), #4cc9f0);
+    background: linear-gradient(135deg, var(--primary), var(--primary-soft));
     color: #ffffff;
     display: flex;
     align-items: center;
@@ -436,7 +478,7 @@ select:focus {
     display: flex;
     align-items: center;
     justify-content: center;
-    color: var(--text-muted, #8a94a6);
+    color: var(--muted);
     font-size: 14px;
 }
 
@@ -447,8 +489,8 @@ select:focus {
     justify-content: center;
     padding: 24px;
     background:
-        radial-gradient(circle at top left, rgba(108, 99, 255, 0.22), transparent 25%),
-        radial-gradient(circle at bottom right, rgba(76, 201, 240, 0.15), transparent 20%),
+        radial-gradient(circle at top left, rgba(47, 111, 235, 0.08), transparent 25%),
+        radial-gradient(circle at bottom right, rgba(47, 111, 235, 0.05), transparent 20%),
         var(--bg);
 }
 
@@ -468,7 +510,7 @@ select:focus {
 .auth-brand h1 {
     font-size: 54px;
     margin-bottom: 14px;
-    color: #ffffff;
+    color: var(--text);
 }
 
 .auth-brand p {
@@ -479,12 +521,11 @@ select:focus {
 }
 
 .auth-box {
-    background: rgba(16, 26, 45, 0.84);
+    background: #ffffff;
     border: 1px solid var(--border);
     border-radius: 24px;
     padding: 32px;
     box-shadow: var(--shadow);
-    backdrop-filter: blur(16px);
 }
 
 .auth-header {
@@ -512,7 +553,7 @@ select:focus {
 }
 
 .switch-auth span {
-    color: #b8a9ff;
+    color: var(--primary);
     font-weight: 600;
     cursor: pointer;
 }
@@ -525,15 +566,15 @@ select:focus {
 }
 
 .msg.success {
-    background: rgba(30, 211, 155, 0.14);
-    color: #8df0cc;
-    border: 1px solid rgba(30, 211, 155, 0.2);
+    background: rgba(22, 163, 74, 0.1);
+    color: #15803d;
+    border: 1px solid rgba(22, 163, 74, 0.25);
 }
 
 .msg.error {
-    background: rgba(255, 92, 122, 0.12);
-    color: #ffb5c4;
-    border: 1px solid rgba(255, 92, 122, 0.2);
+    background: rgba(224, 51, 79, 0.08);
+    color: #b8203c;
+    border: 1px solid rgba(224, 51, 79, 0.25);
 }
 
 .questions-list {
@@ -545,7 +586,7 @@ select:focus {
 
 .question-card {
     border: 1px solid var(--border);
-    background: rgba(255, 255, 255, 0.04);
+    background: #f8fafc;
     border-radius: 16px;
     padding: 16px;
 }
@@ -565,7 +606,7 @@ select:focus {
     display: flex;
     align-items: center;
     gap: 10px;
-    background: rgba(255, 255, 255, 0.03);
+    background: #f8fafc;
     border: 1px solid var(--border);
     border-radius: 12px;
     padding: 10px 12px;
@@ -593,14 +634,13 @@ select:focus {
         width: 92px;
     }
 
-    .sidebar-brand p,
-    .sidebar-brand h2,
-    .sidebar-footer,
-    .sidebar-nav button {
-        font-size: 0;
+    .sidebar-nav a span,
+    .sidebar-promo p,
+    .sidebar-footer {
+        display: none;
     }
 
-    .sidebar-brand {
+    .sidebar-nav a {
         justify-content: center;
     }
 }

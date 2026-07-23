@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { Navigate, Route, Routes, useNavigate } from "react-router-dom";
 import Auth from "./pages/Auth";
 import Navbar from "./components/Navbar";
 import Sidebar from "./components/Sidebar";
@@ -13,7 +14,7 @@ import "./styles.css";
 function App() {
     const [logado, setLogado] = useState(false);
     const [verificandoSessao, setVerificandoSessao] = useState(true);
-    const [pagina, setPagina] = useState("dashboard");
+    const navigate = useNavigate();
 
     useEffect(() => {
         apiFetch("/usuario/perfil")
@@ -25,13 +26,13 @@ function App() {
     useEffect(() => {
         function handleAuthLogout() {
             setLogado(false);
-            setPagina("dashboard");
+            navigate("/dashboard");
         }
 
         window.addEventListener("auth:logout", handleAuthLogout);
 
         return () => window.removeEventListener("auth:logout", handleAuthLogout);
-    }, []);
+    }, [navigate]);
 
     async function logout() {
         try {
@@ -41,23 +42,7 @@ function App() {
         }
 
         setLogado(false);
-        setPagina("dashboard");
-    }
-
-    function renderPagina() {
-        switch (pagina) {
-            case "perfil":
-                return <Perfil onContaDesativada={logout} />;
-            case "trilhas":
-                return <Trilhas />;
-            case "avaliacao":
-                return <Avaliacao />;
-            case "planos":
-                return <Planos />;
-            case "dashboard":
-            default:
-                return <Dashboard />;
-        }
+        navigate("/dashboard");
     }
 
     if (verificandoSessao) {
@@ -70,13 +55,21 @@ function App() {
 
     return (
         <div className="layout">
-            <Sidebar pagina={pagina} setPagina={setPagina} />
+            <Sidebar />
 
             <div className="content">
                 <Navbar onLogout={logout} />
 
                 <main className="page">
-                    {renderPagina()}
+                    <Routes>
+                        <Route path="/" element={<Navigate to="/dashboard" replace />} />
+                        <Route path="/dashboard" element={<Dashboard />} />
+                        <Route path="/trilhas" element={<Trilhas />} />
+                        <Route path="/planos" element={<Planos />} />
+                        <Route path="/avaliacao" element={<Avaliacao />} />
+                        <Route path="/perfil" element={<Perfil onContaDesativada={logout} />} />
+                        <Route path="*" element={<Navigate to="/dashboard" replace />} />
+                    </Routes>
                 </main>
             </div>
         </div>

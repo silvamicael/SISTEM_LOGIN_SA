@@ -1,5 +1,14 @@
 import { useEffect, useState } from "react";
 import { apiFetch } from "../services/api";
+import {
+    LuUserRound,
+    LuShieldCheck,
+    LuFolder,
+    LuChartColumn,
+    LuBot,
+    LuFlag,
+    LuClipboardList
+} from "react-icons/lu";
 
 function Dashboard() {
     const [usuario, setUsuario] = useState(null);
@@ -54,6 +63,9 @@ function Dashboard() {
                 </div>
 
                 <div className="hero-side-card">
+                    <span className="illustration-icon illustration-icon-blue">
+                        <LuBot size={40} />
+                    </span>
                     <h3>Mentoria personalizada</h3>
                     <p>
                         Sua plataforma usa IA para sugerir trilhas, avaliações e
@@ -66,27 +78,39 @@ function Dashboard() {
 
             <div className="dashboard-grid">
                 <div className="dashboard-card glass-card">
+                    <span className="stat-icon stat-icon-blue">
+                        <LuUserRound size={20} />
+                    </span>
                     <span className="card-label">Usuário</span>
                     <strong>{usuario?.nome || "-"}</strong>
                     <small>{usuario?.email || "-"}</small>
                 </div>
 
                 <div className="dashboard-card glass-card">
+                    <span className="stat-icon stat-icon-green">
+                        <LuShieldCheck size={20} />
+                    </span>
                     <span className="card-label">Status</span>
                     <strong>{usuario?.ativo ? "Ativo" : "Inativo"}</strong>
-                    <small>Conta autenticada</small>
+                    <small>Conta verificada</small>
                 </div>
 
                 <div className="dashboard-card glass-card">
+                    <span className="stat-icon stat-icon-blue">
+                        <LuFolder size={20} />
+                    </span>
                     <span className="card-label">Planos</span>
                     <strong>{planos.length}</strong>
                     <small>Plano(s) registrado(s)</small>
                 </div>
 
                 <div className="dashboard-card glass-card">
-                    <span className="card-label">Meta atual</span>
+                    <span className="stat-icon stat-icon-purple">
+                        <LuChartColumn size={20} />
+                    </span>
+                    <span className="card-label">Nível atual</span>
                     <strong>{usuario?.nivelObjetivo || "intermediario"}</strong>
-                    <small>Nível desejado</small>
+                    <small>Nível de conhecimento</small>
                 </div>
             </div>
 
@@ -96,6 +120,9 @@ function Dashboard() {
 
                     {!minhaTrilha ? (
                         <div className="empty-state">
+                            <span className="illustration-icon illustration-icon-blue">
+                                <LuFlag size={36} />
+                            </span>
                             <p>Nenhuma trilha escolhida ainda.</p>
                             <span>
                                 Vá até a aba de Trilhas para gerar opções com a
@@ -120,6 +147,9 @@ function Dashboard() {
                 <section className="card dark-card">
                     <h3>Próximo passo</h3>
                     <div className="empty-state">
+                        <span className="illustration-icon illustration-icon-blue">
+                            <LuClipboardList size={36} />
+                        </span>
                         <p>Gere uma avaliação diagnóstica.</p>
                         <span>
                             Depois da trilha escolhida, a plataforma monta uma
